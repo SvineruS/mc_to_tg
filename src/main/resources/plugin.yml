@@ -1,0 +1,5 @@
+name: TelegramToMinecraftBridge
+version: ${project.version}
+main: ua.kpi.mc.mctotg.Main
+api-version: 1.14.4
+authors: [svinerus, hatomist]
