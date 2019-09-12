@@ -1,5 +1,6 @@
 package ua.kpi.mc.mctotg;
 
+import emoji4j.EmojiUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -19,9 +20,13 @@ class Core {
         String name = update.getMessage().getFrom().getFirstName();
         if (update.getMessage().getFrom().getLastName() != null)
             name += " " + update.getMessage().getFrom().getLastName();
+            name = EmojiUtils.shortCodify(name).replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "");
 
-        String text = ChatColor.AQUA + "[" + name + "] " + ChatColor.WHITE + update.getMessage().getText();
-//        text = EmojiUtils.shortCodify(text).replaceAll("[^\\x00-\\x7Fа-яА-Я]", "");
+            String message_text = update.getMessage().getText();
+            message_text = EmojiUtils.shortCodify(message_text)
+                    .replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "");
+
+        String text = ChatColor.AQUA + "[" + name + "] " + ChatColor.WHITE + message_text;
         Bukkit.broadcastMessage(text);
     }
 
@@ -33,7 +38,7 @@ class Core {
     static void GetOnline() {
         ArrayList<String> players = new ArrayList<>();
         for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            players.add(p.getDisplayName());
+            players.add(p.getName());
         }
         String text = players.size() + " тел. \n" + String.join(", ", players);
         TelegramBot.Bot.MySendMessage(text);
