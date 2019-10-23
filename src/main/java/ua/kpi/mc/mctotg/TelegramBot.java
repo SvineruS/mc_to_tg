@@ -49,7 +49,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
         String msg_text = update.getMessage().getText();
 
-        if (msg_text.equals("/online")) {
+        if (msg_text.equals("/online") || msg_text.equals("/online@"+Constants.BOT_USERNAME)) {
             Core.GetOnline();
         } else
             Core.TgToMc(update);
