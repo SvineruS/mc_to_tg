@@ -30,9 +30,9 @@ class Core {
         Bukkit.broadcastMessage(text);
     }
 
-    static void McToTg(AsyncPlayerChatEvent event) {
-        String text = "<b>" + event.getPlayer().getName() + "</b>: " + event.getMessage();
-        TelegramBot.Bot.MySendMessage(text);
+    static void McToTg(String name, String text) {
+        String msg = "<b>" + name + "</b>: " + text;
+        TelegramBot.Bot.MySendMessage(msg);
     }
 
     static void GetOnline() {
@@ -57,4 +57,13 @@ class Core {
             e.printStackTrace();
         }
     }
+
+    static void SendJoinText(String name) {
+        TelegramBot.Bot.MySendMessage("➡️" + name);
+    }
+
+    static void SendLeaveText(String name) {
+        TelegramBot.Bot.MySendMessage("⬅️" + name);
+    }
+
 }

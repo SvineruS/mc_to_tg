@@ -11,19 +11,25 @@ public class EventListener implements Listener {
 
     @EventHandler
     public void onPlayerMessageEvent(AsyncPlayerChatEvent event) {
-        Core.McToTg(event);
+        String name = event.getPlayer().getName();
+        String text = event.getMessage();
+        Core.McToTg(name, text);
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         int online = Bukkit.getServer().getOnlinePlayers().size();
         Core.UpdateDescription(Integer.toString(online));
+
+        Core.SendJoinText(event.getPlayer().getName());
     }
+
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent event) {
         int online = Bukkit.getServer().getOnlinePlayers().size() - 1;
         Core.UpdateDescription(Integer.toString(online));
-    }
 
+        Core.SendLeaveText(event.getPlayer().getName());
+    }
 
 }
