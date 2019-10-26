@@ -9,6 +9,7 @@ public final class Main extends JavaPlugin {
     public void onEnable() {
 
         TelegramBot.Start();
+        Core.UpdateDescription("онлайн нахуй");
         getServer().getPluginManager().registerEvents(new EventListener(), this);
 
     }
