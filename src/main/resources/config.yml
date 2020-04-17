@@ -1,0 +1,4 @@
+token: "your token"
+chatId: 228
+# for example use '!' to send only global chat, if corresponding plugin installed
+msgStartWith: ''

@@ -13,7 +13,10 @@ public class EventListener implements Listener {
     public void onPlayerMessageEvent(AsyncPlayerChatEvent event) {
         String name = event.getPlayer().getName();
         String text = event.getMessage();
-        Core.McToTg(name, text);
+        if (!text.startsWith(Main.config.msgStartWith))
+            return;
+        text = text.substring(Main.config.msgStartWith.length());
+        Core.McToTg(name, text, null);
     }
 
     @EventHandler

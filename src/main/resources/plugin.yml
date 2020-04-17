@@ -1,5 +1,9 @@
-name: TelegramToMinecraftBridge
+name: Mc2TgBridge
 version: ${project.version}
 main: ua.kpi.mc.mctotg.Main
-api-version: 1.14
+api-version: "1.15"
 authors: [svinerus, hatomist]
+commands:
+  tg:
+    description: Telegram Bridge
+    usage: /tg <msg_id> текст
