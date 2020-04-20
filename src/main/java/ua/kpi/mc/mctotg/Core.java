@@ -27,7 +27,8 @@ class Core {
         else if (update.message().caption() != null)
             message_text = update.message().caption();
         else
-            message_text = "";
+            return;
+
         message_text = message_text.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
 
         int msg_id = update.message().messageId();
@@ -45,6 +46,8 @@ class Core {
     }
 
     static void McToTg(String name, String text, Integer replyTo) {
+        if (text.equals(""))
+            return;
         String msg = "<b>" + name + "</b>: " + text;
         Main.bot.send_msg(msg, replyTo);
     }

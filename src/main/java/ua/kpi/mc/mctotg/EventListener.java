@@ -2,6 +2,7 @@ package ua.kpi.mc.mctotg;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -9,7 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 
 public class EventListener implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onPlayerMessageEvent(AsyncPlayerChatEvent event) {
         String name = event.getPlayer().getName();
         String text = event.getMessage();
