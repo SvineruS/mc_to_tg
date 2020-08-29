@@ -1,7 +1,7 @@
 package ua.kpi.mc.mctotg;
 
 import com.pengrad.telegrambot.Callback;
-import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.request.GetChat;
 import com.pengrad.telegrambot.request.SetChatDescription;
 import com.pengrad.telegrambot.response.BaseResponse;
@@ -21,13 +21,23 @@ class Core {
             name += " " + update.message().from().lastName();
         name = name.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
 
-        String message_text;
+        String message_text = "";
+        String media = null;
         if (update.message().text() != null)
             message_text = update.message().text();
-        else if (update.message().caption() != null)
-            message_text = update.message().caption();
-        else
-            return;
+        else {
+            if      (update.message().audio()       != null) media = "аудио";
+            else if (update.message().sticker()     != null) media = "стикер";
+            else if (update.message().animation()   != null) media = "гиф";
+            else if (update.message().photo()       != null) media = "фото";
+            else if (update.message().video()       != null) media = "видео";
+            else if (update.message().videoNote()   != null) media = "кругляш";
+            else if (update.message().voice()       != null) media = "войс";
+            else if (update.message().document()    != null) media = "документ";
+            else media = "медиа";
+
+            if (update.message().caption() != null) message_text = update.message().caption();
+        }
 
         message_text = message_text.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
 
@@ -36,7 +46,7 @@ class Core {
 
         String cmd =
                 "{\"text\":\"[" + name + "] \",\"color\":\"aqua\",\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + msg_id + " \"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы ответить\"}}," +
-                (update.message().caption() == null ? "" : "{\"text\":\"[медиа] \",\"color\":\"gold\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + link + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
+                (media == null ? "" : "{\"text\":\"[" + media + "] \",\"color\":\"gold\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + link + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
                 "{\"text\":\"" + message_text + "\",\"color\":\"white\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + link + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}}]";
 
         new BukkitRunnable() {
@@ -45,10 +55,12 @@ class Core {
         }.runTask(Main.instance);
     }
 
-    static void McToTg(String name, String text, Integer replyTo) {
+    static void McToTg(String name, String text, Integer replyTo, String world) {
         if (text.equals(""))
             return;
-        String msg = "<b>" + name + "</b>: " + text;
+        world = Main.config.worldNamesDict.getOrDefault(world, world);
+
+        String msg = world + "<b>" + name + "</b>" + ": " + text;
         Main.bot.send_msg(msg, replyTo);
     }
 

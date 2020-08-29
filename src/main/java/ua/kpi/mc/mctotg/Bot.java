@@ -50,8 +50,7 @@ public class Bot {
             public void onResponse(SendMessage sendMessage, SendResponse sendResponse) {}
 
             @Override
-            public void onFailure(SendMessage sendMessage, IOException e) {                        e.printStackTrace();
-            }
+            public void onFailure(SendMessage sendMessage, IOException e) {e.printStackTrace();}
         });
     }
 

@@ -13,14 +13,17 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerMessageEvent(AsyncPlayerChatEvent event) {
         String name = event.getPlayer().getName();
+        String world = event.getPlayer().getWorld().getName();
         String text = event.getMessage();
         if (!text.startsWith(Main.config.msgStartWith))
             return;
         text = text.substring(Main.config.msgStartWith.length());
-        Core.McToTg(name, text, null);
+
+
+        Core.McToTg(name, text, null, world);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
         int online = Bukkit.getServer().getOnlinePlayers().size();
         Core.UpdateDescription(Integer.toString(online));

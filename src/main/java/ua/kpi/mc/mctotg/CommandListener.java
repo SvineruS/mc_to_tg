@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 
-public class CommandTg implements CommandExecutor {
+public class CommandListener implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -22,12 +22,15 @@ public class CommandTg implements CommandExecutor {
                 return true;
             }
         }
+
         if (args.length >= 2 && sender instanceof Player) {
-            String name = ((Player) sender).getName();
+            String name = sender.getName();
             try {
                 int replyTo = Integer.parseInt(args[0]);
                 String text = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-                Core.McToTg(name, text, replyTo);
+                String world = ((Player) sender).getWorld().getName();
+
+                Core.McToTg(name, text, replyTo, world);
                 return true;
             }
             catch (NumberFormatException e)
@@ -35,6 +38,7 @@ public class CommandTg implements CommandExecutor {
                 return false;
             }
         }
+
         return false;
     }
 }
