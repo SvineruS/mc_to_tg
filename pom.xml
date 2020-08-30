@@ -6,7 +6,7 @@
 
     <groupId>ua.kpi.mc</groupId>
     <artifactId>mctotg</artifactId>
-    <version>2.2.1</version>
+    <version>2.2.2</version>
     <packaging>jar</packaging>
 
     <name>Mc2TgBridge</name>

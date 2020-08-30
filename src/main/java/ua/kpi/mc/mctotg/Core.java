@@ -40,6 +40,7 @@ class Core {
         }
 
         message_text = message_text.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
+        message_text = message_text.replaceAll("\n", "   ");
 
         int msg_id = update.message().messageId();
         String link = "https://t.me/" + update.message().chat().username() + "/" + msg_id;
