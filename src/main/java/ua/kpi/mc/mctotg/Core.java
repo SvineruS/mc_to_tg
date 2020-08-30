@@ -19,7 +19,7 @@ class Core {
         String name = update.message().from().firstName();
         if (update.message().from().lastName() != null)
             name += " " + update.message().from().lastName();
-        name = name.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
+        name = name.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ ]", "✭");
 
         String message_text = "";
         String media = null;
