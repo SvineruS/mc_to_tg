@@ -1,77 +1,74 @@
 package ua.kpi.mc.mctotg;
 
 import com.pengrad.telegrambot.Callback;
-import com.pengrad.telegrambot.model.*;
 import com.pengrad.telegrambot.request.GetChat;
 import com.pengrad.telegrambot.request.SetChatDescription;
 import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetChatResponse;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 class Core {
 
-    static void TgToMc(Update update) {
-        String name = update.message().from().firstName();
-        if (update.message().from().lastName() != null)
-            name += " " + update.message().from().lastName();
-        name = name.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ ]", "✭");
-
-        String message_text = "";
-        String media = null;
-        if (update.message().text() != null)
-            message_text = update.message().text();
-        else {
-            if      (update.message().audio()       != null) media = "аудио";
-            else if (update.message().sticker()     != null) media = "стикер";
-            else if (update.message().animation()   != null) media = "гиф";
-            else if (update.message().photo()       != null) media = "фото";
-            else if (update.message().video()       != null) media = "видео";
-            else if (update.message().videoNote()   != null) media = "кругляш";
-            else if (update.message().voice()       != null) media = "войс";
-            else if (update.message().document()    != null) media = "документ";
-            else media = "медиа";
-
-            if (update.message().caption() != null) message_text = update.message().caption();
-        }
-
-        message_text = message_text.replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭");
-        message_text = message_text.replaceAll("\n", "   ");
-
-        int msg_id = update.message().messageId();
-        String link = "https://t.me/" + update.message().chat().username() + "/" + msg_id;
-
+    static void TgToMc(MyMessage message) {
         String cmd =
-                "{\"text\":\"[" + name + "] \",\"color\":\"aqua\",\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + msg_id + " \"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы ответить\"}}," +
-                (media == null ? "" : "{\"text\":\"[" + media + "] \",\"color\":\"gold\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + link + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
-                "{\"text\":\"" + message_text + "\",\"color\":\"white\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + link + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}}]";
+                "{\"text\":\"[" + message.senderName + "] \",\"color\":\"aqua\"," +
+                        "\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + message.id + " \"}," +
+                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы ответить\"}}," +
+                (message.media == null ? "" : "{\"text\":\"[" + message.media + "] \",\"color\":\"gold\"," +
+                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.link + "\"}," +
+                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
+                "{\"text\":\"" + message.text + "\",\"color\":\"white\"," +
+                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.link + "\"}," +
+                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}}]";
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "tellraw @a [" + cmd + "]");}
-        }.runTask(Main.instance);
+        Utils.tellraw(cmd);
+        Utils.CACHE.put(message.id, message);
     }
 
-    static void McToTg(String name, String text, Integer replyTo, String world) {
+
+    static void McToTg(Player sender, String text, Integer replyTo) {
         if (text.equals(""))
             return;
+
+        String senderName = sender.getName();
+        String world = sender.getWorld().getName();
         world = Main.config.worldNamesDict.getOrDefault(world, world);
 
-        String msg = world + "<b>" + name + "</b>" + ": " + text;
+        String msg = world + "<b>" + senderName + "</b>" + ": " + text;
         Main.bot.send_msg(msg, replyTo);
     }
 
-    static void GetOnline() {
-        ArrayList<String> players = new ArrayList<>();
-        for (Player p : Bukkit.getServer().getOnlinePlayers()) {
-            players.add(p.getName());
-        }
-        String text = players.size() + " тел. \n" + String.join(", ", players);
-        Main.bot.send_msg(text);
+    static void McToTgReplay(Player sender, String text, Integer replyTo) {
+        Core.McToTg(sender, text, replyTo);
+
+        MyMessage cachedMessage = Utils.CACHE.get(replyTo);
+        String replyToName = cachedMessage == null ? "" : " " + cachedMessage.senderName;
+
+        String cmd =
+                "{\"text\":\"" + sender.getDisplayName() + " \",\"color\":\"white\"}," +
+                "{\"text\":\"[в ответ" + replyToName + "] \",\"color\":\"gold\"" +
+                (cachedMessage == null ? "" : ",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + cachedMessage.link + "\"}," +
+                                              "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + cachedMessage.text +"\"}") + "}," +
+                "{\"text\":\"" + text + "\",\"color\":\"white\"}]";
+
+        Utils.tellraw(cmd);
+
+    }
+
+
+
+    static String getOnline() {
+        Collection<? extends Player> players = Bukkit.getServer().getOnlinePlayers();
+        if (players.size() == 0)
+            return "Никого..";
+
+        return players.size() + " тел. \n" + players.stream().map(HumanEntity::getName).collect(Collectors.joining(", "));
     }
 
     static void UpdateDescription(String online) {

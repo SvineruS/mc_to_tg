@@ -5,6 +5,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+
 import java.util.Arrays;
 
 public class CommandListener implements CommandExecutor {
@@ -24,19 +25,14 @@ public class CommandListener implements CommandExecutor {
         }
 
         if (args.length >= 2 && sender instanceof Player) {
-            String name = sender.getName();
             try {
                 int replyTo = Integer.parseInt(args[0]);
                 String text = String.join(" ", Arrays.copyOfRange(args, 1, args.length));
-                String world = ((Player) sender).getWorld().getName();
 
-                Core.McToTg(name, text, replyTo, world);
+                Core.McToTgReplay((Player) sender, text, replyTo);
                 return true;
             }
-            catch (NumberFormatException e)
-            {
-                return false;
-            }
+            catch (NumberFormatException e) { return false; }
         }
 
         return false;

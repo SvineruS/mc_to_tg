@@ -22,11 +22,8 @@ public class Bot {
 
         bot.setUpdatesListener(updates -> {
             for (Update update: updates) {
-                try {
-                    processUpdate(update);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                try { processUpdate(update); }
+                catch (Exception e) { e.printStackTrace(); }
             }
             return UpdatesListener.CONFIRMED_UPDATES_ALL;
         });
@@ -58,18 +55,36 @@ public class Bot {
         return bot.execute(new GetMe());
     }
 
+
+
     void processUpdate(Update update) {
         if (update.message() == null)
             return;
         if (!update.message().chat().id().equals(chatId))
             return;
 
-        if (update.message().text() != null && update.message().text().startsWith("/online")) {
-            Core.GetOnline();
-            return;
-        }
-        Core.TgToMc(update);
+        MyMessage message = new MyMessage(update.message());
+        processMessage(message);
     }
 
+    void processMessage(MyMessage message) {
+        if (message.isCommand())
+            processCommands(message);
+        else
+            Core.TgToMc(message);
+    }
+
+    void processCommands(MyMessage message) {
+        String command = message.getCommand();
+
+        if (command.startsWith("online"))
+            send_msg(Core.getOnline());
+        else if (message.isAdmin())
+            Utils.runCommand(command);
+        else
+            send_msg("Только для админов");
+
+
+    }
 
 }
