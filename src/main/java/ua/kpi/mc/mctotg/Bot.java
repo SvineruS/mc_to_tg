@@ -4,6 +4,7 @@ import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.TelegramBot;
 import com.pengrad.telegrambot.UpdatesListener;
 import com.pengrad.telegrambot.model.Update;
+import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.model.request.ParseMode;
 import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.SendMessage;
@@ -13,12 +14,14 @@ import com.pengrad.telegrambot.response.SendResponse;
 import java.io.IOException;
 
 public class Bot {
+    private final Integer botId;
     TelegramBot bot;
     Long chatId;
 
     public Bot(String token, Long chatId) {
         bot = new TelegramBot(token);
         this.chatId = chatId;
+        this.botId = Integer.parseInt(token.split(":")[0]);
 
         bot.setUpdatesListener(updates -> {
             for (Update update: updates) {
@@ -31,10 +34,6 @@ public class Bot {
 
     public void stop() {
         bot.removeGetUpdatesListener();
-    }
-
-    public void send_msg(String text) {
-        send_msg(text, null);
     }
 
     public void send_msg(String text, Integer replyTo) {
@@ -50,11 +49,16 @@ public class Bot {
             public void onFailure(SendMessage sendMessage, IOException e) {e.printStackTrace();}
         });
     }
+    public void send_msg(String text) {
+        send_msg(text, null);
+    }
+
 
     public GetMeResponse getMe() {
         return bot.execute(new GetMe());
     }
 
+    public boolean isMe(User user) { return user.id().equals(botId); }
 
 
     void processUpdate(Update update) {
@@ -83,8 +87,6 @@ public class Bot {
             Utils.runCommand(command);
         else
             send_msg("Только для админов");
-
-
     }
 
 }

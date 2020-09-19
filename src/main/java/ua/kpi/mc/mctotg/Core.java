@@ -3,10 +3,8 @@ package ua.kpi.mc.mctotg;
 import com.pengrad.telegrambot.Callback;
 import com.pengrad.telegrambot.request.GetChat;
 import com.pengrad.telegrambot.request.SetChatDescription;
-import com.pengrad.telegrambot.response.BaseResponse;
 import com.pengrad.telegrambot.response.GetChatResponse;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 
 import java.io.IOException;
@@ -18,17 +16,20 @@ class Core {
     static void TgToMc(MyMessage message) {
         String cmd =
                 "{\"text\":\"[" + message.senderName + "] \",\"color\":\"aqua\"," +
-                        "\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + message.id + " \"}," +
+                        "\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + message.originalMessage.messageId() + " \"}," +
                         "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы ответить\"}}," +
+                (message.reply == null ? "" : "{\"text\":\"[реплай] \",\"color\":\"gold\"," +
+                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + new MyMessage(message.originalMessage.replyToMessage()).getLink() + "\"}," +
+                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + message.reply + "\"}},") +
                 (message.media == null ? "" : "{\"text\":\"[" + message.media + "] \",\"color\":\"gold\"," +
-                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.link + "\"}," +
+                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.getLink() + "\"}," +
                         "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
                 "{\"text\":\"" + message.text + "\",\"color\":\"white\"," +
-                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.link + "\"}," +
+                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.getLink() + "\"}," +
                         "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}}]";
 
         Utils.tellraw(cmd);
-        Utils.CACHE.put(message.id, message);
+        Utils.CACHE.put(message.originalMessage.messageId(), message);
     }
 
 
@@ -37,8 +38,7 @@ class Core {
             return;
 
         String senderName = sender.getName();
-        String world = sender.getWorld().getName();
-        world = Main.config.worldNamesDict.getOrDefault(world, world);
+        String world = Utils.getWorldIcon(sender.getWorld());
 
         String msg = world + "<b>" + senderName + "</b>" + ": " + text;
         Main.bot.send_msg(msg, replyTo);
@@ -53,7 +53,7 @@ class Core {
         String cmd =
                 "{\"text\":\"" + sender.getDisplayName() + " \",\"color\":\"white\"}," +
                 "{\"text\":\"[в ответ" + replyToName + "] \",\"color\":\"gold\"" +
-                (cachedMessage == null ? "" : ",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + cachedMessage.link + "\"}," +
+                (cachedMessage == null ? "" : ",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + cachedMessage.getLink() + "\"}," +
                                               "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + cachedMessage.text +"\"}") + "}," +
                 "{\"text\":\"" + text + "\",\"color\":\"white\"}]";
 
@@ -68,7 +68,9 @@ class Core {
         if (players.size() == 0)
             return "Никого..";
 
-        return players.size() + " тел. \n" + players.stream().map(HumanEntity::getName).collect(Collectors.joining(", "));
+        return players.size() + " тел. \n" + players.stream()
+                .map(p -> Utils.getWorldIcon(p.getWorld()) + p.getName())
+                .collect(Collectors.joining("\n"));
     }
 
     static void UpdateDescription(String online) {
@@ -82,18 +84,7 @@ class Core {
                     description = description.split("Online")[0];
                 description += "Online: " + online;
 
-                SetChatDescription request = new SetChatDescription(Main.bot.chatId, description);
-                Main.bot.bot.execute(request, new Callback<SetChatDescription, BaseResponse>() {
-
-                    @Override
-                    public void onResponse(SetChatDescription setChatDescription, BaseResponse baseResponse) {
-                    }
-
-                    @Override
-                    public void onFailure(SetChatDescription setChatDescription, IOException e) {
-                        e.printStackTrace();
-                    }
-                });
+                Main.bot.bot.execute(new SetChatDescription(Main.bot.chatId, description));
             }
 
             @Override

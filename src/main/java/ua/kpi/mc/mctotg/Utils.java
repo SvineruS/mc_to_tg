@@ -1,11 +1,11 @@
 package ua.kpi.mc.mctotg;
 
-import com.pengrad.telegrambot.model.Chat;
 import com.pengrad.telegrambot.model.ChatMember;
 import com.pengrad.telegrambot.model.Message;
 import com.pengrad.telegrambot.model.User;
 import com.pengrad.telegrambot.request.GetChatMember;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.LinkedHashMap;
@@ -30,11 +30,21 @@ public class Utils {
 
 
     public static String replaceNonMinecraftSymbols(String text) {
+        if (text == null) return "";
         return text
                 .replaceAll("[^\\x00-\\x7Fа-яА-ЯёЁіІїЇ]", "✭")
                 .replaceAll("\n", "   ")
                 .replaceAll("\"", "'");
     }
+
+
+    public static String getWorldIcon(World world) {
+        String worldName = world.getName();
+        return Main.config.worldNamesDict.getOrDefault(worldName,
+                Main.config.worldNamesDict.getOrDefault("default", worldName)
+        );
+    }
+
 
 }
 
@@ -50,26 +60,20 @@ class MaxSizeHashMap<K, V> extends LinkedHashMap<K, V> {
 
 class MyMessage {
 
-    public Integer id;
-    public User sender;
-    public Chat chat;
+    public Message originalMessage;
+
     public String text = "";
     public String senderName;
     public String media;
-    public String link;
+    public String reply;
 
     public MyMessage(Message message) {
-        id = message.messageId();
-        sender = message.from();
-        chat = message.chat();
+        originalMessage = message;
+        senderName = getSenderName(message.from());
 
-
-        senderName = getSenderName(sender);
-        link = "https://t.me/" + chat.username() + "/" + id;
-
-        if (message.text() != null)
+        if (message.text() != null) {
             text = Utils.replaceNonMinecraftSymbols(message.text());
-        else {
+        } else {
             if      (message.caption()          != null) text = Utils.replaceNonMinecraftSymbols(message.caption());
 
             if      (message.audio()            != null) media = "аудио";
@@ -83,7 +87,20 @@ class MyMessage {
             else                                         media = "медиа";
         }
 
+        if (message.replyToMessage() != null) {
+            MyMessage replyMessage = new MyMessage(message.replyToMessage());
+
+            if (Main.bot.isMe(replyMessage.originalMessage.from()))
+                reply = replyMessage.text;
+            else
+                reply = replyMessage.senderName + ": " +
+                        (replyMessage.media == null ? "" : "[" + replyMessage.media + "] ") +
+                        replyMessage.text;
+        }
+
     }
+
+    public String getLink() { return "https://t.me/" + originalMessage.chat().username() + "/" + originalMessage.messageId(); }
 
     public boolean isCommand() { return text != null && text.startsWith("/"); }
 
@@ -91,7 +108,7 @@ class MyMessage {
 
     public boolean isAdmin() {
         ChatMember.Status status = Main.bot.bot.execute(
-                new GetChatMember(chat.id(), sender.id())
+                new GetChatMember(originalMessage.chat().id(), originalMessage.from().id())
         ).chatMember().status();
         return status == ChatMember.Status.administrator || status == ChatMember.Status.creator;
     }
