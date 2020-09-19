@@ -10,12 +10,14 @@ import com.pengrad.telegrambot.request.GetMe;
 import com.pengrad.telegrambot.request.SendMessage;
 import com.pengrad.telegrambot.response.GetMeResponse;
 import com.pengrad.telegrambot.response.SendResponse;
+import ua.kpi.mc.mctotg.utils.MyMessage;
+import ua.kpi.mc.mctotg.utils.Utils;
 
 import java.io.IOException;
 
 public class Bot {
     private final Integer botId;
-    TelegramBot bot;
+    public TelegramBot bot;
     Long chatId;
 
     public Bot(String token, Long chatId) {

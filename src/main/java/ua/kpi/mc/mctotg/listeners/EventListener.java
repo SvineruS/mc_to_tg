@@ -1,4 +1,4 @@
-package ua.kpi.mc.mctotg;
+package ua.kpi.mc.mctotg.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -7,6 +7,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import ua.kpi.mc.mctotg.Core;
+import ua.kpi.mc.mctotg.Main;
 
 public class EventListener implements Listener {
 

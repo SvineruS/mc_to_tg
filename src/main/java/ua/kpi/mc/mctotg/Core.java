@@ -6,34 +6,30 @@ import com.pengrad.telegrambot.request.SetChatDescription;
 import com.pengrad.telegrambot.response.GetChatResponse;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import ua.kpi.mc.mctotg.utils.MyMessage;
+import ua.kpi.mc.mctotg.utils.tellraw.Tellraw;
+import ua.kpi.mc.mctotg.utils.tellraw.Text;
+import ua.kpi.mc.mctotg.utils.Utils;
 
 import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-class Core {
 
-    static void TgToMc(MyMessage message) {
-        String cmd =
-                "{\"text\":\"[" + message.senderName + "] \",\"color\":\"aqua\"," +
-                        "\"clickEvent\":{\"action\":\"suggest_command\",\"value\":\"/tg " + message.originalMessage.messageId() + " \"}," +
-                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы ответить\"}}," +
-                (message.reply == null ? "" : "{\"text\":\"[реплай] \",\"color\":\"gold\"," +
-                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + new MyMessage(message.originalMessage.replyToMessage()).getLink() + "\"}," +
-                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + message.reply + "\"}},") +
-                (message.media == null ? "" : "{\"text\":\"[" + message.media + "] \",\"color\":\"gold\"," +
-                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.getLink() + "\"}," +
-                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}},") +
-                "{\"text\":\"" + message.text + "\",\"color\":\"white\"," +
-                        "\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + message.getLink() + "\"}," +
-                        "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажми, что бы открыть телегу\"}}]";
+public class Core {
 
-        Utils.tellraw(cmd);
+    public static void TgToMc(MyMessage message) {
+        Tellraw tellraw = new Tellraw();
+        tellraw.add(new Text("[" + message.senderName + "] ").color("aqua").showText("Нажми, что бы ответить").suggestCommand("/tg " + message.originalMessage.messageId().toString() + " "));
+        if (message.reply != null) tellraw.add(new Text("[реплай] ").color("gold").showText(message.reply).openUrl(new MyMessage(message.originalMessage.replyToMessage()).getLink()));
+        if (message.media != null) tellraw.add(new Text("[" + message.media + "] ").color("gold").showText("Нажми, что бы открыть телегу").openUrl(message.getLink()));
+        tellraw.add(new Text(message.text).color("white").showText("Нажми, что бы открыть телегу").openUrl(message.getLink()));
+        tellraw.send();
         Utils.CACHE.put(message.originalMessage.messageId(), message);
     }
 
 
-    static void McToTg(Player sender, String text, Integer replyTo) {
+    public static void McToTg(Player sender, String text, Integer replyTo) {
         if (text.equals(""))
             return;
 
@@ -44,26 +40,24 @@ class Core {
         Main.bot.send_msg(msg, replyTo);
     }
 
-    static void McToTgReplay(Player sender, String text, Integer replyTo) {
+    public static void McToTgReplay(Player sender, String text, Integer replyTo) {
         Core.McToTg(sender, text, replyTo);
 
         MyMessage cachedMessage = Utils.CACHE.get(replyTo);
-        String replyToName = cachedMessage == null ? "" : " " + cachedMessage.senderName;
+        Text rText = cachedMessage == null ? new Text(" [в ответ] ") :
+                                             new Text(" [в ответ " + cachedMessage.senderName + "] ")
+                                                     .showText(cachedMessage.getMediaAndText()).openUrl(cachedMessage.getLink());
 
-        String cmd =
-                "{\"text\":\"" + sender.getDisplayName() + " \",\"color\":\"white\"}," +
-                "{\"text\":\"[в ответ" + replyToName + "] \",\"color\":\"gold\"" +
-                (cachedMessage == null ? "" : ",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"" + cachedMessage.getLink() + "\"}," +
-                                              "\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"" + cachedMessage.text +"\"}") + "}," +
-                "{\"text\":\"" + text + "\",\"color\":\"white\"}]";
-
-        Utils.tellraw(cmd);
-
+        new Tellraw(
+                new Text(sender.getDisplayName()).color("white"),
+                rText.color("gold"),
+                new Text(text).color("white")
+        ).send();
     }
 
 
 
-    static String getOnline() {
+    public static String getOnline() {
         Collection<? extends Player> players = Bukkit.getServer().getOnlinePlayers();
         if (players.size() == 0)
             return "Никого..";
@@ -73,7 +67,7 @@ class Core {
                 .collect(Collectors.joining("\n"));
     }
 
-    static void UpdateDescription(String online) {
+    public static void UpdateDescription(String online) {
         GetChat request = new GetChat(Main.bot.chatId);
         Main.bot.bot.execute(request, new Callback<GetChat, GetChatResponse>() {
             @Override
@@ -88,18 +82,12 @@ class Core {
             }
 
             @Override
-            public void onFailure(GetChat getChat, IOException e) {
-                e.printStackTrace();
-            }
+            public void onFailure(GetChat getChat, IOException e) { e.printStackTrace(); }
         });
     }
 
-    static void SendJoinText(String name) {
-        Main.bot.send_msg("➡️" + name);
-    }
+    public static void SendJoinText(String name) { Main.bot.send_msg("➡️" + name); }
 
-    static void SendLeaveText(String name) {
-        Main.bot.send_msg("⬅️" + name);
-    }
+    public static void SendLeaveText(String name) { Main.bot.send_msg("⬅️" + name); }
 
 }

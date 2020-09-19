@@ -1,9 +1,11 @@
-package ua.kpi.mc.mctotg;
+package ua.kpi.mc.mctotg.listeners;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import ua.kpi.mc.mctotg.Core;
+import ua.kpi.mc.mctotg.Main;
 
 
 import java.util.Arrays;
@@ -37,4 +39,6 @@ public class CommandListener implements CommandExecutor {
 
         return false;
     }
+
+
 }
